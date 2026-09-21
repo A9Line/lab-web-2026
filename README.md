@@ -23,3 +23,12 @@
 ## Статус темы
 
 На проверке
+
+## Документация
+
+- [Заявка на тему](docs/project-proposal.md)
+- [Требования (ЛР1)](docs/lab-01-requirements.md)
+- [Архитектура (ЛР2)](docs/architecture.md)
+- [Модель данных (ЛР2)](docs/data-model.md)
+- [Контракт API (ЛР2)](docs/api-contract.md)
+- [Матрица требований (ЛР2)](docs/requirements-matrix.md)
