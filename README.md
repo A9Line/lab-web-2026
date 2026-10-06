@@ -32,3 +32,13 @@
 - [Модель данных (ЛР2)](docs/data-model.md)
 - [Контракт API (ЛР2)](docs/api-contract.md)
 - [Матрица требований (ЛР2)](docs/requirements-matrix.md)
+
+## Запуск клиента
+
+Нужен Node.js LTS.
+
+    cd frontend
+    npm install
+    npm run dev
+
+Открыть адрес Vite, обычно http://localhost:5173
