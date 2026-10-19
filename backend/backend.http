@@ -1,0 +1,8 @@
+@baseUrl = http://localhost:5000
+
+### Проверка живости процесса
+GET {{baseUrl}}/health
+
+### Информация о приложении
+GET {{baseUrl}}/info
+Accept: application/json

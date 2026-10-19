@@ -35,6 +35,7 @@
 - [Компоненты и маршруты (ЛР4)](docs/reports/lab-04.md)
 - [Форма и список в памяти (ЛР5)](docs/reports/lab-05.md)
 - [Клиент API и mock (ЛР6)](docs/reports/lab-06.md)
+- [Каркас Web API (ЛР7)](docs/reports/lab-07.md)
 
 ## Запуск клиента
 
@@ -52,3 +53,38 @@
 `VITE_API_BASE_URL=http://localhost:5000` — адрес будущего API; `VITE_USE_MOCK=true` оставляет учебный mock. Настоящая интеграция будет в ЛР12.
 
 Проверки клиента: `npm test` и `npm run build` из `frontend`.
+
+## Запуск сервера
+
+Нужен SDK .NET 8.0.400 или новее в ветке 8.0. В облачной среде установлен SDK 8.0.426 в `/workspace/.dotnet`.
+
+```bash
+cd backend
+dotnet restore --locked-mode
+dotnet run
+```
+
+API: `http://localhost:5000`.
+Swagger в Development: `http://localhost:5000/swagger/index.html`.
+Профиль `http` в `Properties/launchSettings.json` задаёт порт 5000 и среду Development.
+
+```bash
+curl http://localhost:5000/health
+curl http://localhost:5000/info
+```
+
+`/health` возвращает `ok` и проверяет только живость процесса. `/info` возвращает название системы, среду и пометку ЛР7.
+Успешный `/health` не доказывает создание заявки: `POST /api/waste-requests` появится в ЛР8.
+
+Данные заявок пока в памяти, после перезапуска пропадут. Сейчас это память клиентского mock; сервер ЛР7 содержит только служебные адреса и ещё не хранит заявки. PostgreSQL будет подключён в следующих работах. Vue пока не подключается к backend.
+
+Если в облачной среде команда `dotnet` не найдена, перед запуском выполните:
+
+```bash
+export DOTNET_ROOT=/workspace/.dotnet
+export PATH="$DOTNET_ROOT:$PATH"
+export DOTNET_CLI_HOME=/workspace/.dotnet-home
+export NUGET_PACKAGES=/workspace/.nuget/packages
+```
+
+Проверка сервера: `dotnet build --no-restore` из `backend`, затем отдельные запросы `/health`, `/info` и открытие Swagger.
