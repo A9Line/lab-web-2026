@@ -1,0 +1,41 @@
+{
+  "checks": [
+    "loading",
+    "data",
+    "empty",
+    "error",
+    "double-submit creates one record",
+    "400 from mock API",
+    "500 preserves form and unlocks button",
+    "reload resets mock memory",
+    "real fetch network failure",
+    "fetch 400 and 500 via browser response interception"
+  ],
+  "result400": {
+    "status": 400,
+    "message": "Проверьте поля формы.",
+    "errors": {
+      "title": "Тема должна содержать от 5 до 80 символов"
+    }
+  },
+  "fetch400": {
+    "status": 400,
+    "message": "Проверьте поля формы."
+  },
+  "fetch500": {
+    "status": 500,
+    "message": "Сервер не смог обработать запрос. Попробуйте позже."
+  },
+  "console": [
+    "[mock без HTTP] GET /api/waste-requests {ok: true, status: 200, data: Array(2)}",
+    "Autofocus processing was blocked because a document already has a focused element.",
+    "[mock без HTTP] POST /api/waste-requests {ok: true, status: 201, data: Object}",
+    "[mock без HTTP] GET /api/waste-requests {ok: true, status: 200, data: Array(3)}",
+    "[mock без HTTP] POST /api/waste-requests {ok: false, status: 400, data: Object}",
+    "Проверка API 400: 400 Проверьте поля формы.",
+    "[mock без HTTP] POST /api/waste-requests {ok: false, status: 500, data: Object}",
+    "[mock без HTTP] GET /api/waste-requests {ok: false, status: 500, data: Object}",
+    "[mock без HTTP] GET /api/waste-requests {ok: true, status: 200, data: Array(0)}",
+    "[mock без HTTP] GET /api/waste-requests {ok: true, status: 200, data: Array(2)}"
+  ]
+}

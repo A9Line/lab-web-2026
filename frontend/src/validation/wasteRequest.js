@@ -1,7 +1,7 @@
 export function validateWasteRequest(form) {
   const errors = {}
-  const title = form.title.trim()
-  const description = form.description.trim()
+  const title = typeof form.title === 'string' ? form.title.trim() : ''
+  const description = typeof form.description === 'string' ? form.description.trim() : ''
   if (title.length < 5 || title.length > 80) {
     errors.title = 'Тема должна содержать от 5 до 80 символов'
   }

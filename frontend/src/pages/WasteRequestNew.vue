@@ -1,30 +1,47 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { addItem } from '../wasteRequestsStore.js'
+import { items } from '../wasteRequestsStore.js'
+import { createWasteRequest } from '../api/wasteRequests.js'
 import { validateWasteRequest } from '../validation/wasteRequest.js'
 
 const form = ref({ title: '', laboratoryId: null, wasteTypeId: null, description: '' })
 const errors = ref({})
 const router = useRouter()
 
-function onCreate() {
+const isSubmitting = ref(false)
+const requestError = ref('')
+
+async function onCreate() {
+  if (isSubmitting.value) return
+  requestError.value = ''
   errors.value = validateWasteRequest(form.value)
   if (Object.keys(errors.value).length) return
-  addItem({
-    title: form.value.title.trim(),
-    laboratoryId: form.value.laboratoryId,
-    wasteTypeId: form.value.wasteTypeId,
-    description: form.value.description.trim(),
-  })
-  form.value = { title: '', laboratoryId: null, wasteTypeId: null, description: '' }
-  router.push('/')
+  isSubmitting.value = true
+  try {
+    const created = await createWasteRequest({
+      title: form.value.title.trim(),
+      laboratoryId: form.value.laboratoryId,
+      wasteTypeId: form.value.wasteTypeId,
+      description: form.value.description.trim(),
+    })
+    // Номер, id и статус берём из ответа, а не вычисляем в форме.
+    items.value.push(created)
+    form.value = { title: '', laboratoryId: null, wasteTypeId: null, description: '' }
+    await router.push('/')
+  } catch (e) {
+    requestError.value = e.message
+    errors.value = e.errors || {}
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
 <template>
   <section>
     <h2>Новая заявка</h2>
+    <p v-if="requestError" class="error" role="alert">{{ requestError }}</p>
     <form novalidate @submit.prevent="onCreate">
       <p>
         <label for="title">Тема (5–80 символов)</label>
@@ -46,7 +63,7 @@ function onCreate() {
         <textarea id="description" v-model="form.description"></textarea>
         <span v-if="errors.description" class="error" role="alert">{{ errors.description }}</span>
       </p>
-      <button type="submit">Создать</button>
+      <button type="submit" :disabled="isSubmitting">{{ isSubmitting ? 'Создаём…' : 'Создать' }}</button>
     </form>
   </section>
 </template>
