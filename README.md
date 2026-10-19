@@ -33,6 +33,7 @@
 - [Контракт API (ЛР2)](docs/api-contract.md)
 - [Матрица требований (ЛР2)](docs/requirements-matrix.md)
 - [Компоненты и маршруты (ЛР4)](docs/reports/lab-04.md)
+- [Форма и список в памяти (ЛР5)](docs/reports/lab-05.md)
 
 ## Запуск клиента
 
