@@ -38,6 +38,7 @@
 - [Каркас Web API (ЛР7)](docs/reports/lab-07.md)
 - [REST: заявки и проверка полей (ЛР8)](docs/reports/lab-08.md)
 - [Коллекция запросов Postman (ЛР8)](docs/api-collection/waste-requests.postman_collection.json)
+- [PostgreSQL и SQL (ЛР9)](docs/reports/lab-09.md)
 
 ## Запуск клиента
 
@@ -106,3 +107,20 @@ export NUGET_PACKAGES=/workspace/.nuget/packages
 ```
 
 Проверка сервера: `dotnet build --no-restore` из `backend`, затем `/health`, `/info`, Swagger и прогон коллекции запросов ЛР8.
+
+## База данных (ЛР9)
+
+Нужен PostgreSQL 17 (подойдёт и 16). Скрипты лежат в `db`, запускать из корня репозитория по порядку:
+
+```powershell
+createdb -U postgres waste_removal
+psql -U postgres -d waste_removal -f db/schema.sql
+psql -U postgres -d waste_removal -f db/seed.sql
+psql -U postgres -d waste_removal -f db/queries.sql
+```
+
+В Windows сначала выполнить `$env:PGCLIENTENCODING="UTF8"`, иначе русские строки из файлов прочитаются в кодировке консоли.
+
+`schema.sql` можно запускать повторно: он удаляет и создаёт заново только таблицы проекта. После него снова запустить `seed.sql`.
+
+Пароль — тот, что задан при установке PostgreSQL, в репозиторий его не кладём. Backend к базе пока не подключён (ЛР10).
