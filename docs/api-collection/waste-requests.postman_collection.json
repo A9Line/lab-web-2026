@@ -1,0 +1,289 @@
+{
+  "info": {
+    "name": "Вывоз лабораторных отходов — заявки (ЛР8)",
+    "description": "Импорт: Postman → Import → этот файл (или Insomnia → Import). Базовый URL: http://localhost:5000 (переменная baseUrl). Запускать по порядку на только что запущенном сервере (Collection Runner): данные живут в памяти, после перезапуска сервера список пуст. Ожидания: 201 / 400 / 404 / 409.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "labHeadUserId", "value": "1" },
+    { "key": "engineerUserId", "value": "9" },
+    { "key": "otherUserId", "value": "4" },
+    { "key": "wasteRequestId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "01 GET list — 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 и массив (на пустом сервере — [])', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json()).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/waste-requests"
+      }
+    },
+    {
+      "name": "02 POST create — 201",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('201, есть id и number, status New', function () {",
+              "  pm.response.to.have.status(201);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.id).to.be.a('number');",
+              "  pm.expect(body.number).to.match(/^WR-\\d{4}-\\d{4}$/);",
+              "  pm.expect(body.status).to.eql('New');",
+              "  pm.expect(body.assigneeUserId).to.eql(null);",
+              "  pm.collectionVariables.set('wasteRequestId', body.id);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-User-Id", "value": "{{labHeadUserId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Вывоз отработанных кислот из лаборатории 214\",\n  \"laboratoryId\": 3,\n  \"wasteTypeId\": 7,\n  \"description\": \"Накопилось 20 литров отработанной серной кислоты, требуется вывоз\"\n}"
+        },
+        "url": "{{baseUrl}}/api/waste-requests"
+      }
+    },
+    {
+      "name": "03 POST short title — 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400 и ошибка по полю title', function () {",
+              "  pm.response.to.have.status(400);",
+              "  pm.expect(pm.response.json().errors).to.have.property('title');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-User-Id", "value": "{{labHeadUserId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Абв\",\n  \"laboratoryId\": 3,\n  \"wasteTypeId\": 7,\n  \"description\": \"Накопилось 20 литров отработанной серной кислоты, требуется вывоз\"\n}"
+        },
+        "url": "{{baseUrl}}/api/waste-requests"
+      }
+    },
+    {
+      "name": "04 POST laboratoryId not a number — 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400, а не 500', function () {",
+              "  pm.response.to.have.status(400);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-User-Id", "value": "{{labHeadUserId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Вывоз отработанных кислот\",\n  \"laboratoryId\": \"abc\",\n  \"wasteTypeId\": 7,\n  \"description\": \"Накопилось 20 литров отработанной серной кислоты\"\n}"
+        },
+        "url": "{{baseUrl}}/api/waste-requests"
+      }
+    },
+    {
+      "name": "05 GET by id — 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 и та же заявка', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('wasteRequestId')));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/waste-requests/{{wasteRequestId}}"
+      }
+    },
+    {
+      "name": "06 GET by missing id — 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('404 ProblemDetails', function () {",
+              "  pm.response.to.have.status(404);",
+              "  pm.expect(pm.response.json().status).to.eql(404);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/waste-requests/999999"
+      }
+    },
+    {
+      "name": "07 PATCH status without assignee — 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('409: исполнитель не назначен', function () {",
+              "  pm.response.to.have.status(409);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-User-Id", "value": "{{engineerUserId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"InProgress\"\n}"
+        },
+        "url": "{{baseUrl}}/api/waste-requests/{{wasteRequestId}}/status"
+      }
+    },
+    {
+      "name": "08 PATCH assignee — 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200, исполнитель назначен, статус остаётся New', function () {",
+              "  pm.response.to.have.status(200);",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.assigneeUserId).to.eql(Number(pm.collectionVariables.get('engineerUserId')));",
+              "  pm.expect(body.status).to.eql('New');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-User-Id", "value": "{{labHeadUserId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"assigneeUserId\": {{engineerUserId}}\n}"
+        },
+        "url": "{{baseUrl}}/api/waste-requests/{{wasteRequestId}}/assignee"
+      }
+    },
+    {
+      "name": "09 PATCH status by other user — 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('409: чужая заявка', function () {",
+              "  pm.response.to.have.status(409);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-User-Id", "value": "{{otherUserId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"InProgress\"\n}"
+        },
+        "url": "{{baseUrl}}/api/waste-requests/{{wasteRequestId}}/status"
+      }
+    },
+    {
+      "name": "10 PATCH status by assignee — 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 и статус InProgress', function () {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().status).to.eql('InProgress');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-User-Id", "value": "{{engineerUserId}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"InProgress\"\n}"
+        },
+        "url": "{{baseUrl}}/api/waste-requests/{{wasteRequestId}}/status"
+      }
+    }
+  ]
+}

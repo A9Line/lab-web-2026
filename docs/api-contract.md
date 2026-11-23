@@ -11,10 +11,14 @@
 | GET `/api/waste-requests` | — | 200, массив заявок или `[]` | — |
 | GET `/api/waste-requests/{id}` | — | 200, объект заявки | 404 — заявки с таким id нет |
 | POST `/api/waste-requests` | `title`, `laboratoryId`, `wasteTypeId`, `description` | 201, объект с `id`, `number`, `status: "New"` | 400 — невалидные поля |
-| PATCH `/api/waste-requests/{id}/assignee` | `assigneeUserId` | 200, обновлённая заявка | 404 — заявка не найдена |
-| PATCH `/api/waste-requests/{id}/status` | `status` | 200, обновлённая заявка | 404 — заявка не найдена; 409 — недопустимый переход статуса |
+| PATCH `/api/waste-requests/{id}/assignee` | `assigneeUserId` | 200, обновлённая заявка | 400 — невалидное тело; 404 — заявка не найдена; 409 — заявка уже не `New` |
+| PATCH `/api/waste-requests/{id}/status` | `status` | 200, обновлённая заявка | 400 — неизвестный статус; 404 — заявка не найдена; 409 — недопустимый переход статуса |
 
 **Клиент не присылает** при создании: `id`, `number`, `status`, `createdByUserId`, `assigneeUserId`, `createdAt`, `updatedAt`. Всё это определяет сервер.
+
+**Текущий пользователь (с ЛР8 до ЛР11)** передаётся заголовком `X-User-Id: <id>` в POST и обоих PATCH. Без заголовка — 400. Из него сервер берёт `createdByUserId` и проверяет, что статус меняет назначенный исполнитель.
+
+**Формат ошибок (с ЛР8).** Все отказы 400 / 404 / 409 / 500 возвращаются стандартным `ProblemDetails` ASP.NET Core (`application/problem+json`): поля `type`, `title`, `status`, `detail`, `traceId`. У 400 дополнительно словарь `errors` по полям. Примеры ниже приведены к этому виду.
 
 **DELETE в API отсутствует.** Отмена — это `PATCH …/status` со значением `Cancelled`.
 
@@ -53,10 +57,14 @@ Content-Type: application/json
 **Ошибка (400 Bad Request):**
 ```json
 {
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+  "title": "One or more validation errors occurred.",
+  "status": 400,
   "errors": {
-    "title": "Заголовок должен содержать от 5 до 80 символов",
-    "description": "Описание должно содержать от 10 до 500 символов"
-  }
+    "title": ["Заголовок должен содержать от 5 до 80 символов"],
+    "description": ["Описание должно содержать от 10 до 500 символов"]
+  },
+  "traceId": "00-…"
 }
 ```
 
@@ -144,7 +152,11 @@ Content-Type: application/json
 **Ошибка (409 Conflict)** — попытка сделать недопустимый переход, например `New → Closed` в один шаг или смена статуса чужой заявки:
 ```json
 {
-  "error": "Недопустимый переход статуса"
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+  "title": "Действие противоречит состоянию заявки",
+  "status": 409,
+  "detail": "Нельзя взять заявку в работу: исполнитель не назначен",
+  "traceId": "00-…"
 }
 ```
 

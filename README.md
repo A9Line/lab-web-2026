@@ -36,6 +36,8 @@
 - [Форма и список в памяти (ЛР5)](docs/reports/lab-05.md)
 - [Клиент API и mock (ЛР6)](docs/reports/lab-06.md)
 - [Каркас Web API (ЛР7)](docs/reports/lab-07.md)
+- [REST: заявки и проверка полей (ЛР8)](docs/reports/lab-08.md)
+- [Коллекция запросов Postman (ЛР8)](docs/api-collection/waste-requests.postman_collection.json)
 
 ## Запуск клиента
 
@@ -73,10 +75,26 @@ curl http://localhost:5000/health
 curl http://localhost:5000/info
 ```
 
-`/health` возвращает `ok` и проверяет только живость процесса. `/info` возвращает название системы, среду и пометку ЛР7.
-Успешный `/health` не доказывает создание заявки: `POST /api/waste-requests` появится в ЛР8.
+`/health` возвращает `ok` и проверяет только живость процесса. `/info` возвращает название системы, среду и пометку ЛР8.
+Успешный `/health` не доказывает создание заявки — для этого есть адреса заявок ниже.
 
-Данные заявок пока в памяти, после перезапуска пропадут. Сейчас это память клиентского mock; сервер ЛР7 содержит только служебные адреса и ещё не хранит заявки. PostgreSQL будет подключён в следующих работах. Vue пока не подключается к backend.
+### Заявки (ЛР8)
+
+| Метод и путь | Успех | Отказы |
+|---|---:|---|
+| `GET /api/waste-requests` | 200, массив или `[]` | — |
+| `GET /api/waste-requests/{id}` | 200 | 404 |
+| `POST /api/waste-requests` | 201, `status: "New"` | 400 |
+| `PATCH /api/waste-requests/{id}/assignee` | 200 | 400, 404, 409 |
+| `PATCH /api/waste-requests/{id}/status` | 200 | 400, 404, 409 |
+
+Текущий пользователь до ЛР11 передаётся заголовком `X-User-Id` в POST и обоих PATCH. Ошибки — стандартный `ProblemDetails`.
+
+Коллекция запросов: Postman → Import → `docs/api-collection/waste-requests.postman_collection.json`, базовый URL `http://localhost:5000` (переменная `baseUrl`). Запускать по порядку на только что запущенном сервере. Те же запросы — в `backend/backend.http`.
+
+Учебный сбой для проверки лога (только Development): `FailureSimulation__CreateWasteRequest=true dotnet run` — тогда валидный POST вернёт 500, а в консоли появится одна строка `CreateWasteRequest failed; …`. По умолчанию флаг выключен.
+
+**Данные заявок пока в памяти сервера: после перезапуска `dotnet run` список пуст.** PostgreSQL будет подключён в следующих работах. Vue пока работает со своим mock и не подключается к backend (ЛР12).
 
 Если в облачной среде команда `dotnet` не найдена, перед запуском выполните:
 
@@ -87,4 +105,4 @@ export DOTNET_CLI_HOME=/workspace/.dotnet-home
 export NUGET_PACKAGES=/workspace/.nuget/packages
 ```
 
-Проверка сервера: `dotnet build --no-restore` из `backend`, затем отдельные запросы `/health`, `/info` и открытие Swagger.
+Проверка сервера: `dotnet build --no-restore` из `backend`, затем `/health`, `/info`, Swagger и прогон коллекции запросов ЛР8.

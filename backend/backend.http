@@ -6,3 +6,75 @@ GET {{baseUrl}}/health
 ### Информация о приложении
 GET {{baseUrl}}/info
 Accept: application/json
+
+### ЛР8. Список заявок — 200 (сразу после запуска: [])
+GET {{baseUrl}}/api/waste-requests
+Accept: application/json
+
+### ЛР8. Создать заявку — 201, status New
+POST {{baseUrl}}/api/waste-requests
+Content-Type: application/json
+X-User-Id: 1
+
+{
+  "title": "Вывоз отработанных кислот из лаборатории 214",
+  "laboratoryId": 3,
+  "wasteTypeId": 7,
+  "description": "Накопилось 20 литров отработанной серной кислоты, требуется вывоз"
+}
+
+### ЛР8. Короткий заголовок — 400
+POST {{baseUrl}}/api/waste-requests
+Content-Type: application/json
+X-User-Id: 1
+
+{
+  "title": "Абв",
+  "laboratoryId": 3,
+  "wasteTypeId": 7,
+  "description": "Накопилось 20 литров отработанной серной кислоты, требуется вывоз"
+}
+
+### ЛР8. Одна заявка — 200
+GET {{baseUrl}}/api/waste-requests/1
+Accept: application/json
+
+### ЛР8. Нет такого id — 404
+GET {{baseUrl}}/api/waste-requests/999999
+Accept: application/json
+
+### ЛР8. В работу без исполнителя — 409
+PATCH {{baseUrl}}/api/waste-requests/1/status
+Content-Type: application/json
+X-User-Id: 9
+
+{
+  "status": "InProgress"
+}
+
+### ЛР8. Назначить исполнителя 9 — 200, статус остаётся New
+PATCH {{baseUrl}}/api/waste-requests/1/assignee
+Content-Type: application/json
+X-User-Id: 1
+
+{
+  "assigneeUserId": 9
+}
+
+### ЛР8. Чужой пользователь берёт в работу — 409
+PATCH {{baseUrl}}/api/waste-requests/1/status
+Content-Type: application/json
+X-User-Id: 4
+
+{
+  "status": "InProgress"
+}
+
+### ЛР8. Назначенный исполнитель берёт в работу — 200, InProgress
+PATCH {{baseUrl}}/api/waste-requests/1/status
+Content-Type: application/json
+X-User-Id: 9
+
+{
+  "status": "InProgress"
+}
