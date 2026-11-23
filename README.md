@@ -39,6 +39,7 @@
 - [REST: заявки и проверка полей (ЛР8)](docs/reports/lab-08.md)
 - [Коллекция запросов Postman (ЛР8)](docs/api-collection/waste-requests.postman_collection.json)
 - [PostgreSQL и SQL (ЛР9)](docs/reports/lab-09.md)
+- [EF Core: сервер пишет в базу (ЛР10)](docs/reports/lab-10.md)
 
 ## Запуск клиента
 
@@ -67,6 +68,8 @@ dotnet restore --locked-mode
 dotnet run
 ```
 
+Перед первым запуском нужна база PostgreSQL и строка подключения — см. раздел «Сервер и PostgreSQL (ЛР10)» ниже.
+
 API: `http://localhost:5000`.
 Swagger в Development: `http://localhost:5000/swagger/index.html`.
 Профиль `http` в `Properties/launchSettings.json` задаёт порт 5000 и среду Development.
@@ -76,7 +79,7 @@ curl http://localhost:5000/health
 curl http://localhost:5000/info
 ```
 
-`/health` возвращает `ok` и проверяет только живость процесса. `/info` возвращает название системы, среду и пометку ЛР8.
+`/health` возвращает `ok` и проверяет только живость процесса. `/info` возвращает название системы, среду и пометку ЛР10.
 Успешный `/health` не доказывает создание заявки — для этого есть адреса заявок ниже.
 
 ### Заявки (ЛР8)
@@ -91,11 +94,11 @@ curl http://localhost:5000/info
 
 Текущий пользователь до ЛР11 передаётся заголовком `X-User-Id` в POST и обоих PATCH. Ошибки — стандартный `ProblemDetails`.
 
-Коллекция запросов: Postman → Import → `docs/api-collection/waste-requests.postman_collection.json`, базовый URL `http://localhost:5000` (переменная `baseUrl`). Запускать по порядку на только что запущенном сервере. Те же запросы — в `backend/backend.http`.
+Коллекция запросов: Postman → Import → `docs/api-collection/waste-requests.postman_collection.json`, базовый URL `http://localhost:5000` (переменная `baseUrl`). Запускать по порядку: запрос 02 создаёт новую заявку и дальше работает с её id. Пользователи в коллекции: 1 — заведующий, 2 и 3 — инженеры. Те же запросы — в `backend/backend.http`.
 
 Учебный сбой для проверки лога (только Development): `FailureSimulation__CreateWasteRequest=true dotnet run` — тогда валидный POST вернёт 500, а в консоли появится одна строка `CreateWasteRequest failed; …`. По умолчанию флаг выключен.
 
-**Данные заявок пока в памяти сервера: после перезапуска `dotnet run` список пуст.** PostgreSQL будет подключён в следующих работах. Vue пока работает со своим mock и не подключается к backend (ЛР12).
+С ЛР10 заявки хранятся в PostgreSQL и не пропадают после перезапуска сервера. Если `laboratoryId`, `wasteTypeId`, `assigneeUserId` или `X-User-Id` ссылаются на несуществующую запись — 400. Vue пока работает со своим mock и не подключается к backend (ЛР12).
 
 Если в облачной среде команда `dotnet` не найдена, перед запуском выполните:
 
@@ -123,4 +126,33 @@ psql -U postgres -d waste_removal -f db/queries.sql
 
 `schema.sql` можно запускать повторно: он удаляет и создаёт заново только таблицы проекта. После него снова запустить `seed.sql`.
 
-Пароль — тот, что задан при установке PostgreSQL, в репозиторий его не кладём. Backend к базе пока не подключён (ЛР10).
+Пароль — тот, что задан при установке PostgreSQL, в репозиторий его не кладём.
+
+## Сервер и PostgreSQL (ЛР10)
+
+Сервер работает с базой через EF Core (Npgsql). Схему создаёт миграция из `backend/Migrations`, она же добавляет справочники и учебных пользователей 1–4. Имена таблиц и столбцов те же, что в `db/schema.sql`.
+
+`db/schema.sql` удаляет таблицы проекта, поэтому в базе API его не запускать. Для SQL-скриптов ЛР9 лучше создать отдельную базу, например `waste_removal_sql`.
+
+1. Создать базу (один раз): `createdb -U postgres waste_removal`.
+2. Задать строку подключения в user-secrets (хранится вне репозитория):
+
+```powershell
+cd backend
+dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5432;Database=waste_removal;Username=postgres;Password=ВАШ_ПАРОЛЬ"
+```
+
+Вместо user-secrets можно задать переменную окружения `ConnectionStrings__Default`. В `appsettings.json` ключ оставлен пустым. Без строки подключения сервер не запустится и напишет, где её задать.
+
+3. Применить миграции. Инструмент `dotnet-ef` 8.0.34 закреплён в `dotnet-tools.json` в корне репозитория:
+
+```powershell
+dotnet tool restore
+cd backend
+$env:ASPNETCORE_ENVIRONMENT="Development"   # чтобы dotnet ef прочитал user-secrets
+dotnet ef database update
+```
+
+4. `dotnet run` — API на `http://localhost:5000`.
+
+Изменили модель — новая миграция: `dotnet ef migrations add ИмяИзменения`, затем `dotnet ef database update`.

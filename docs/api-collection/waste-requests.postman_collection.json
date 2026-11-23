@@ -1,14 +1,14 @@
 {
   "info": {
     "name": "Вывоз лабораторных отходов — заявки (ЛР8)",
-    "description": "Импорт: Postman → Import → этот файл (или Insomnia → Import). Базовый URL: http://localhost:5000 (переменная baseUrl). Запускать по порядку на только что запущенном сервере (Collection Runner): данные живут в памяти, после перезапуска сервера список пуст. Ожидания: 201 / 400 / 404 / 409.",
+    "description": "Импорт: Postman → Import → этот файл (или Insomnia → Import). Базовый URL: http://localhost:5000 (переменная baseUrl). Запускать по порядку (Collection Runner): запрос 02 создаёт новую заявку и сохраняет её id. С ЛР10 данные хранятся в PostgreSQL, пользователи 1–4 и справочники добавляет миграция. Ожидания: 201 / 400 / 404 / 409.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:5000" },
     { "key": "labHeadUserId", "value": "1" },
-    { "key": "engineerUserId", "value": "9" },
-    { "key": "otherUserId", "value": "4" },
+    { "key": "engineerUserId", "value": "2" },
+    { "key": "otherUserId", "value": "3" },
     { "key": "wasteRequestId", "value": "1" }
   ],
   "item": [
@@ -63,7 +63,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"title\": \"Вывоз отработанных кислот из лаборатории 214\",\n  \"laboratoryId\": 3,\n  \"wasteTypeId\": 7,\n  \"description\": \"Накопилось 20 литров отработанной серной кислоты, требуется вывоз\"\n}"
+          "raw": "{\n  \"title\": \"Вывоз отработанных кислот из лаборатории 214\",\n  \"laboratoryId\": 3,\n  \"wasteTypeId\": 1,\n  \"description\": \"Накопилось 20 литров отработанной серной кислоты, требуется вывоз\"\n}"
         },
         "url": "{{baseUrl}}/api/waste-requests"
       }
@@ -92,7 +92,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"title\": \"Абв\",\n  \"laboratoryId\": 3,\n  \"wasteTypeId\": 7,\n  \"description\": \"Накопилось 20 литров отработанной серной кислоты, требуется вывоз\"\n}"
+          "raw": "{\n  \"title\": \"Абв\",\n  \"laboratoryId\": 3,\n  \"wasteTypeId\": 1,\n  \"description\": \"Накопилось 20 литров отработанной серной кислоты, требуется вывоз\"\n}"
         },
         "url": "{{baseUrl}}/api/waste-requests"
       }
@@ -120,7 +120,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"title\": \"Вывоз отработанных кислот\",\n  \"laboratoryId\": \"abc\",\n  \"wasteTypeId\": 7,\n  \"description\": \"Накопилось 20 литров отработанной серной кислоты\"\n}"
+          "raw": "{\n  \"title\": \"Вывоз отработанных кислот\",\n  \"laboratoryId\": \"abc\",\n  \"wasteTypeId\": 1,\n  \"description\": \"Накопилось 20 литров отработанной серной кислоты\"\n}"
         },
         "url": "{{baseUrl}}/api/waste-requests"
       }

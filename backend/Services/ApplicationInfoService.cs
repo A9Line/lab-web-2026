@@ -16,6 +16,6 @@ public class ApplicationInfoService : IApplicationInfoService
         return new ApplicationInfo(
             "Информационная система управления вывозом лабораторных отходов",
             _environment.EnvironmentName,
-            "ЛР8");
+            "ЛР10");
     }
 }

@@ -5,13 +5,13 @@ namespace backend.Services;
 
 public interface IWasteRequestService
 {
-    IReadOnlyList<WasteRequest> GetAll();
+    Task<IReadOnlyList<WasteRequest>> GetAllAsync();
 
-    WasteRequest? GetById(int id);
+    Task<WasteRequest?> GetByIdAsync(int id);
 
-    WasteRequest Create(CreateWasteRequestRequest request, int createdByUserId);
+    Task<WasteRequestOperationResult> CreateAsync(CreateWasteRequestRequest request, int createdByUserId);
 
-    WasteRequestOperationResult AssignExecutor(int id, int assigneeUserId);
+    Task<WasteRequestOperationResult> AssignExecutorAsync(int id, int assigneeUserId);
 
-    WasteRequestOperationResult ChangeStatus(int id, WasteRequestStatus newStatus, int callerUserId);
+    Task<WasteRequestOperationResult> ChangeStatusAsync(int id, WasteRequestStatus newStatus, int callerUserId);
 }

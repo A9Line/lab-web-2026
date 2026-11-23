@@ -19,7 +19,7 @@ X-User-Id: 1
 {
   "title": "Вывоз отработанных кислот из лаборатории 214",
   "laboratoryId": 3,
-  "wasteTypeId": 7,
+  "wasteTypeId": 1,
   "description": "Накопилось 20 литров отработанной серной кислоты, требуется вывоз"
 }
 
@@ -31,7 +31,7 @@ X-User-Id: 1
 {
   "title": "Абв",
   "laboratoryId": 3,
-  "wasteTypeId": 7,
+  "wasteTypeId": 1,
   "description": "Накопилось 20 литров отработанной серной кислоты, требуется вывоз"
 }
 
@@ -46,25 +46,25 @@ Accept: application/json
 ### ЛР8. В работу без исполнителя — 409
 PATCH {{baseUrl}}/api/waste-requests/1/status
 Content-Type: application/json
-X-User-Id: 9
+X-User-Id: 2
 
 {
   "status": "InProgress"
 }
 
-### ЛР8. Назначить исполнителя 9 — 200, статус остаётся New
+### ЛР8. Назначить исполнителя 2 — 200, статус остаётся New
 PATCH {{baseUrl}}/api/waste-requests/1/assignee
 Content-Type: application/json
 X-User-Id: 1
 
 {
-  "assigneeUserId": 9
+  "assigneeUserId": 2
 }
 
-### ЛР8. Чужой пользователь берёт в работу — 409
+### ЛР8. Другой инженер берёт в работу — 409
 PATCH {{baseUrl}}/api/waste-requests/1/status
 Content-Type: application/json
-X-User-Id: 4
+X-User-Id: 3
 
 {
   "status": "InProgress"
@@ -73,7 +73,7 @@ X-User-Id: 4
 ### ЛР8. Назначенный исполнитель берёт в работу — 200, InProgress
 PATCH {{baseUrl}}/api/waste-requests/1/status
 Content-Type: application/json
-X-User-Id: 9
+X-User-Id: 2
 
 {
   "status": "InProgress"

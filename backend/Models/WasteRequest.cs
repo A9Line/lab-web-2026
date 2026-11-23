@@ -1,16 +1,16 @@
 namespace backend.Models;
 
-public sealed record WasteRequest
+public class WasteRequest
 {
-    public required int Id { get; init; }
-    public required string Number { get; init; }
-    public required string Title { get; init; }
-    public required string Description { get; init; }
-    public required WasteRequestStatus Status { get; init; }
-    public required int LaboratoryId { get; init; }
-    public required int WasteTypeId { get; init; }
-    public required int CreatedByUserId { get; init; }
-    public int? AssigneeUserId { get; init; }
-    public required DateTimeOffset CreatedAt { get; init; }
-    public required DateTimeOffset UpdatedAt { get; init; }
+    public int Id { get; set; }
+    public string Number { get; set; } = "";
+    public string Title { get; set; } = "";
+    public string Description { get; set; } = "";
+    public WasteRequestStatus Status { get; set; }
+    public int LaboratoryId { get; set; }
+    public int WasteTypeId { get; set; }
+    public int CreatedByUserId { get; set; }
+    public int? AssigneeUserId { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
 }

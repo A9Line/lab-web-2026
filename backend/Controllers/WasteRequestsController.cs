@@ -19,15 +19,16 @@ public class WasteRequestsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<WasteRequestResponse>> GetWasteRequests()
+    public async Task<ActionResult<IEnumerable<WasteRequestResponse>>> GetWasteRequests()
     {
-        return Ok(_service.GetAll().Select(WasteRequestResponse.From));
+        var items = await _service.GetAllAsync();
+        return Ok(items.Select(WasteRequestResponse.From));
     }
 
     [HttpGet("{id:int}")]
-    public ActionResult<WasteRequestResponse> GetWasteRequest(int id)
+    public async Task<ActionResult<WasteRequestResponse>> GetWasteRequest(int id)
     {
-        var item = _service.GetById(id);
+        var item = await _service.GetByIdAsync(id);
         if (item is null)
         {
             return NotFoundProblem(id);
@@ -37,19 +38,25 @@ public class WasteRequestsController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<WasteRequestResponse> CreateWasteRequest(
+    public async Task<ActionResult<WasteRequestResponse>> CreateWasteRequest(
         [FromHeader(Name = UserIdHeader)]
         [Required(ErrorMessage = "Передайте заголовок X-User-Id")]
         [Range(1, int.MaxValue, ErrorMessage = "X-User-Id должен быть целым числом больше 0")]
         int? userId,
         [FromBody] CreateWasteRequestRequest request)
     {
-        var created = _service.Create(request, userId!.Value);
+        var result = await _service.CreateAsync(request, userId!.Value);
+        if (result.Outcome != WasteRequestOutcome.Success)
+        {
+            return ToActionResult(0, result);
+        }
+
+        var created = result.Item!;
         return CreatedAtAction(nameof(GetWasteRequest), new { id = created.Id }, WasteRequestResponse.From(created));
     }
 
     [HttpPatch("{id:int}/assignee")]
-    public ActionResult<WasteRequestResponse> AssignWasteRequest(
+    public async Task<ActionResult<WasteRequestResponse>> AssignWasteRequest(
         int id,
         [FromHeader(Name = UserIdHeader)]
         [Required(ErrorMessage = "Передайте заголовок X-User-Id")]
@@ -58,11 +65,11 @@ public class WasteRequestsController : ControllerBase
         [FromBody] AssignWasteRequestRequest request)
     {
         // роль (назначает заведующий) будет проверяться в ЛР11
-        return ToActionResult(id, _service.AssignExecutor(id, request.AssigneeUserId!.Value));
+        return ToActionResult(id, await _service.AssignExecutorAsync(id, request.AssigneeUserId!.Value));
     }
 
     [HttpPatch("{id:int}/status")]
-    public ActionResult<WasteRequestResponse> ChangeWasteRequestStatus(
+    public async Task<ActionResult<WasteRequestResponse>> ChangeWasteRequestStatus(
         int id,
         [FromHeader(Name = UserIdHeader)]
         [Required(ErrorMessage = "Передайте заголовок X-User-Id")]
@@ -70,20 +77,26 @@ public class WasteRequestsController : ControllerBase
         int? userId,
         [FromBody] ChangeWasteRequestStatusRequest request)
     {
-        return ToActionResult(id, _service.ChangeStatus(id, request.Status!.Value, userId!.Value));
+        return ToActionResult(id, await _service.ChangeStatusAsync(id, request.Status!.Value, userId!.Value));
     }
 
     private ActionResult<WasteRequestResponse> ToActionResult(int id, WasteRequestOperationResult result)
     {
-        return result.Outcome switch
+        switch (result.Outcome)
         {
-            WasteRequestOutcome.Success => Ok(WasteRequestResponse.From(result.Item!)),
-            WasteRequestOutcome.NotFound => NotFoundProblem(id),
-            _ => Problem(
-                statusCode: StatusCodes.Status409Conflict,
-                title: "Действие противоречит состоянию заявки",
-                detail: result.Error)
-        };
+            case WasteRequestOutcome.Success:
+                return Ok(WasteRequestResponse.From(result.Item!));
+            case WasteRequestOutcome.NotFound:
+                return NotFoundProblem(id);
+            case WasteRequestOutcome.Invalid:
+                ModelState.AddModelError(result.Field!, result.Error!);
+                return ValidationProblem(ModelState);
+            default:
+                return Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Действие противоречит состоянию заявки",
+                    detail: result.Error);
+        }
     }
 
     private ObjectResult NotFoundProblem(int id)
